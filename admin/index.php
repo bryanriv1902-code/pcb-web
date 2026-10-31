@@ -84,6 +84,7 @@ if ($dentro && $post && !in_array($accion, ['entrar', 'crear'], true)) {
         else $aj['stripe_webhook_secret'] = $wh;
       }
       if (!empty($_POST['quitar_stripe'])) { unset($aj['stripe_secret'], $aj['stripe_webhook_secret']); }
+      $aj['stripe_tax'] = !empty($_POST['stripe_tax']);
       if (!$error) { pcb_guardar_ajustes($aj); $aviso = 'Ajustes guardados.'; }
     }
   } elseif ($accion === 'clave') {
@@ -191,6 +192,7 @@ $modo = pcb_stripe_modo();
       <label>Secreto de confirmación de pagos de Stripe <?= !empty($aj['stripe_webhook_secret']) ? '<span class="tag">guardado</span>' : '' ?>
         <input name="stripe_webhook_secret" type="password" autocomplete="off" placeholder="<?= !empty($aj['stripe_webhook_secret']) ? 'Déjalo vacío para mantener el actual' : 'whsec_…' ?>"></label>
       <p class="muted small">En Stripe, crea un destino de eventos con esta dirección y el evento <code>checkout.session.completed</code>:<br><code class="copy"><?= pcb_h($base . '/api/stripe-webhook.php') ?></code></p>
+      <label class="row"><input type="checkbox" name="stripe_tax" value="1" <?= !empty($aj['stripe_tax']) ? 'checked' : '' ?>> Sumar el impuesto de venta automáticamente con Stripe Tax (actívalo antes en tu cuenta de Stripe y registra Rhode Island)</label>
       <?php if (!empty($aj['stripe_secret'])): ?><label class="row"><input type="checkbox" name="quitar_stripe" value="1"> Quitar las claves de Stripe (volver a modo demostración)</label><?php endif; ?>
       <button class="btn">Guardar ajustes</button>
     </form>
@@ -223,7 +225,7 @@ $modo = pcb_stripe_modo();
     $enlacePago = $base . '/pago/?p=' . $p['token'];
     $wa = wa_cliente($p['telefono'] ?? '');
     $msg = $p['estado'] === 'pendiente_pago'
-      ? "Hola {$p['nombre']}, aquí tienes tu enlace de pago seguro para quedarte con tu página web ($198.99, pago único): $enlacePago"
+      ? "Hola {$p['nombre']}, aquí tienes tu enlace de pago seguro para quedarte con tu página web ($259.99, pago único): $enlacePago"
       : "Hola {$p['nombre']}, aquí puedes seguir tu pedido de página web: $enlacePago";
   ?>
     <article class="box order">

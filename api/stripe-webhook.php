@@ -37,7 +37,8 @@ $p = pcb_leer_pedido($id);
 if (!$p) pcb_json(['ok' => true, 'aviso' => 'pedido_no_encontrado']);
 
 $pagado = ($s['payment_status'] ?? '') === 'paid';
-$importeOk = (int) ($s['amount_total'] ?? 0) === PCB_PRECIO_CENTAVOS && strtolower((string) ($s['currency'] ?? '')) === PCB_MONEDA;
+// se compara el precio antes de impuestos, por si se cobra impuesto de venta
+$importeOk = (int) ($s['amount_subtotal'] ?? ($s['amount_total'] ?? 0)) === PCB_PRECIO_CENTAVOS && strtolower((string) ($s['currency'] ?? '')) === PCB_MONEDA;
 
 if ($pagado && $importeOk && empty($p['pago']['confirmado'])) {
   $p['pago'] = [
@@ -51,7 +52,7 @@ if ($pagado && $importeOk && empty($p['pago']['confirmado'])) {
   pcb_historial($p, 'Pago confirmado por Stripe (' . $p['pago']['modo'] . ')');
   pcb_guardar_pedido($p);
   pcb_aviso('Pago confirmado — ' . $p['negocio'],
-    "El pedido {$p['id']} ({$p['negocio']}) ha pagado \$198.99.\nModo: {$p['pago']['modo']}\n\nHaz la entrega definitiva y márcalo como Entregado en el panel.\n");
+    "El pedido {$p['id']} ({$p['negocio']}) ha pagado \$259.99.\nModo: {$p['pago']['modo']}\n\nHaz la entrega definitiva y márcalo como Entregado en el panel.\n");
 } elseif ($pagado && !$importeOk) {
   pcb_historial($p, 'Atención: llegó un pago con un importe distinto al esperado. Revísalo en Stripe.');
   pcb_guardar_pedido($p);
