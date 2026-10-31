@@ -1,0 +1,7 @@
+Idiomas de la web (español, inglés, portugués)
+- El texto en español está en index.html (es el original).
+- Las traducciones están en dict.py: (español, inglés, portugués).
+- Después de cambiar un texto de index.html, añade su traducción en dict.py y ejecuta:
+    python3 herramientas/i18n/build_i18n.py .
+  Esto marca los textos nuevos con data-i18n y regenera lib/i18n.js. Avisa si falta alguna traducción.
+- Esta carpeta no es pública: el .htaccess la bloquea (404).

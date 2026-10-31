@@ -111,6 +111,7 @@ Options -Indexes
 </FilesMatch>
 RedirectMatch 404 ^/_privado(/|$)
 RedirectMatch 404 ^/assets/fuente(/|$)
+RedirectMatch 404 ^/herramientas(/|$)
 
 # ----- Panel y pagos: nunca en buscadores -----
 <IfModule mod_headers.c>

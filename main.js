@@ -7,6 +7,7 @@
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]; }); }
+  function T(s) { return window.PCB_I18N && window.PCB_I18N.t ? window.PCB_I18N.t(s) : s; }
   function safe(fn, name) { try { fn(); } catch (e) { if (window.console) console.warn("[" + name + "]", e); } }
 
   /* ---------- Formato de los videos ---------- */
@@ -26,16 +27,16 @@
       var v = vids[i];
       if (!v || !(v.vista || v.completo || v.imagen)) return; // sigue "Próximamente"
       var num = ("0" + (i + 1)).slice(-2);
-      var titulo = v.titulo || ("Proyecto " + num);
+      var titulo = v.titulo || (T("Proyecto") + " " + num);
       var media = $(".vcard__media", card);
       var html = "";
       if (!(v.vista || v.completo)) {
         // proyecto con captura: la imagen recorre la página lentamente
         media.innerHTML = '<img class="vcard__shot" src="' + esc(v.portada || v.imagen) + '" alt="' + esc(titulo) + '" loading="lazy" decoding="async">' +
           '<span class="vcard__play vcard__play--zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 4H4v6M14 20h6v-6M4 4l6 6M20 20l-6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
-        $(".vcard__title", card).innerHTML = esc(titulo) + (v.sector ? '<span class="vcard__sector">' + esc(v.sector) + "</span>" : "");
+        $(".vcard__title", card).innerHTML = esc(titulo) + (v.sector ? '<span class="vcard__sector">' + esc(T(v.sector)) + "</span>" : "");
         card.disabled = false;
-        card.setAttribute("aria-label", "Ver imagen: " + titulo);
+        card.setAttribute("aria-label", T("Ver imagen: ") + titulo);
         card.setAttribute("data-image", v.imagen || v.portada);
         card.setAttribute("data-title", titulo);
         return;
@@ -45,9 +46,9 @@
       html += '<video muted loop playsinline preload="none" data-src="' + esc(v.vista || v.completo) + '"' +
         (v.portada ? ' poster="' + esc(v.portada) + '"' : "") + "></video>";
       media.innerHTML = html + playIcon;
-      $(".vcard__title", card).innerHTML = esc(titulo) + (v.sector ? '<span class="vcard__sector">' + esc(v.sector) + "</span>" : "");
+      $(".vcard__title", card).innerHTML = esc(titulo) + (v.sector ? '<span class="vcard__sector">' + esc(T(v.sector)) + "</span>" : "");
       card.disabled = false;
-      card.setAttribute("aria-label", "Ver video: " + titulo);
+      card.setAttribute("aria-label", T("Ver video: ") + titulo);
       card.setAttribute("data-full", v.completo || v.vista);
       card.setAttribute("data-title", titulo);
     });
@@ -286,17 +287,21 @@
     }
     // Botones flotantes: mientras falte el número o el enlace, llevan a la sección de contacto
     var fw = $("[data-float-wa]"), ff = $("[data-float-fb]");
+    // Dentro del navegador de la app de Facebook o Instagram las pestañas nuevas suelen bloquearse: ahí se abre en la misma ventana
+    var inApp = /FBAN|FBAV|FB_IAB|FBIOS|Instagram/i.test(navigator.userAgent || "");
+    function newTab(a) { if (inApp) a.removeAttribute("target"); else { a.target = "_blank"; a.rel = "noopener"; } }
     if (fw) {
-      if (num.length >= 10) { fw.href = "https://wa.me/" + num + "?text=" + encodeURIComponent(data.whatsappMensaje || ""); fw.target = "_blank"; }
+      if (num.length >= 10) { fw.href = "https://wa.me/" + num + "?text=" + encodeURIComponent(data.whatsappMensaje || ""); newTab(fw); }
     }
     if (ff) {
       var fb = String(data.facebook || "").trim();
-      if (/^https:\/\/(www\.|m\.)?(facebook|fb)\.com\//i.test(fb)) { ff.href = fb; ff.target = "_blank"; }
+      if (/^https:\/\/(www\.|m\.|web\.)?(facebook|fb)\.com\//i.test(fb)) { ff.href = fb; newTab(ff); }
     }
+    if (inApp) $$("[data-wa]").forEach(function (a) { a.removeAttribute("target"); });
     var mail = String(data.email || "").trim();
     var box = $("[data-mail]");
     if (box && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) {
-      box.innerHTML = 'O escríbenos a <a href="mailto:' + esc(mail) + '">' + esc(mail) + "</a>";
+      box.innerHTML = esc(T('O escríbenos a')) + ' <a href="mailto:' + esc(mail) + '">' + esc(mail) + "</a>";
       box.hidden = false;
     }
   }
@@ -651,23 +656,23 @@
       var id = idIn.value.trim(), mail = mailIn.value.trim();
       var okId = /^PCB-\d{8}-[A-Z0-9]{4}$/.test(id), okMail = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail);
       idIn.classList.toggle("is-bad", !okId); mailIn.classList.toggle("is-bad", !okMail);
-      if (!okId) { setMsg("Escribe tu número de pedido como aparece en tu correo, por ejemplo PCB-20261031-AB12.", "err"); idIn.focus(); return; }
-      if (!okMail) { setMsg("Escribe el correo con el que solicitaste tu página.", "err"); mailIn.focus(); return; }
-      if (window.__PREVIEW__) { setMsg("Vista previa: en la web publicada, este botón te lleva a tu página de pago seguro.", "ok"); return; }
-      btn.disabled = true; setMsg("Buscando tu pedido…");
+      if (!okId) { setMsg(T("Escribe tu número de pedido como aparece en tu correo, por ejemplo PCB-20261031-AB12."), "err"); idIn.focus(); return; }
+      if (!okMail) { setMsg(T("Escribe el correo con el que solicitaste tu página."), "err"); mailIn.focus(); return; }
+      if (window.__PREVIEW__) { setMsg(T("Vista previa: en la web publicada, este botón te lleva a tu página de pago seguro."), "ok"); return; }
+      btn.disabled = true; setMsg(T("Buscando tu pedido…"));
       fetch(form.getAttribute("action"), {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pedido: id, email: mail, sitio: (form.querySelector("[name=sitio]") || {}).value || "" })
       }).then(function (r) { return r.json(); }).then(function (res) {
         if (res && res.ok && res.url) {
-          setMsg("¡Pedido encontrado! Abriendo tu pago seguro…", "ok");
+          setMsg(T("¡Pedido encontrado! Abriendo tu pago seguro…"), "ok");
           window.location.href = res.url;
         } else {
-          setMsg(res && res.reason === "rate" ? "Demasiados intentos seguidos. Espera unos minutos."
-            : "No encontramos un pedido con ese número y correo. Revisa los datos o escríbenos.", "err");
+          setMsg(res && res.reason === "rate" ? T("Demasiados intentos seguidos. Espera unos minutos.")
+            : T("No encontramos un pedido con ese número y correo. Revisa los datos o escríbenos."), "err");
           btn.disabled = false;
         }
-      }).catch(function () { setMsg("No pudimos buscar tu pedido en este momento. Inténtalo de nuevo.", "err"); btn.disabled = false; });
+      }).catch(function () { setMsg(T("No pudimos buscar tu pedido en este momento. Inténtalo de nuevo."), "err"); btn.disabled = false; });
     });
   }
 
@@ -713,14 +718,14 @@
           (f.type === "checkbox" ? f.parentNode : f).classList.toggle("is-bad", !ok);
           if (!ok && !bad) bad = f;
         });
-        if (bad) { setMsg("Revisa los campos marcados.", "err"); bad.focus(); return; }
+        if (bad) { setMsg(T("Revisa los campos marcados."), "err"); bad.focus(); return; }
 
         var payload = {};
         $$("input, select, textarea", form).forEach(function (f) {
           if (!f.name) return;
           payload[f.name] = f.type === "checkbox" ? (f.checked ? "1" : "") : f.value;
         });
-        btn.disabled = true; setMsg("Enviando…");
+        btn.disabled = true; setMsg(T("Enviando…"));
 
         fetch(form.getAttribute("action"), {
           method: "POST",
@@ -730,17 +735,17 @@
           if (res && res.ok) {
             form.reset(); if (tIn) tIn.value = String(t0);
             setMsg(form.getAttribute("data-form") === "pedido"
-              ? "¡Recibimos tu solicitud! Tu número de pedido es " + (res.id || "") + ". Guárdalo: con él podrás pagar tu página cuando te convenza. Te lo enviamos también por correo."
-              : "¡Mensaje recibido! Te responderemos pronto.", "ok");
+              ? T("¡Recibimos tu solicitud! Tu número de pedido es ") + (res.id || "") + T(". Guárdalo: con él podrás pagar tu página cuando te convenza. Te lo enviamos también por correo.")
+              : T("¡Mensaje recibido! Te responderemos pronto."), "ok");
           } else {
             var r2 = res && res.reason;
-            setMsg(r2 === "rate" ? "Has enviado varias solicitudes seguidas. Inténtalo de nuevo en unos minutos."
-              : r2 === "fast" ? "Revisa tus datos y vuelve a enviar en unos segundos."
-              : "No pudimos enviar tu solicitud. Revisa los datos e inténtalo de nuevo.", "err");
+            setMsg(r2 === "rate" ? T("Has enviado varias solicitudes seguidas. Inténtalo de nuevo en unos minutos.")
+              : r2 === "fast" ? T("Revisa tus datos y vuelve a enviar en unos segundos.")
+              : T("No pudimos enviar tu solicitud. Revisa los datos e inténtalo de nuevo."), "err");
           }
         }).catch(function () {
           var wa = String(data.whatsapp || "").replace(/\D/g, "");
-          setMsg("No pudimos enviar tu solicitud en este momento." + (wa.length >= 10 ? " Escríbenos por WhatsApp." : " Inténtalo de nuevo más tarde."), "err");
+          setMsg(T("No pudimos enviar tu solicitud en este momento.") + T(wa.length >= 10 ? " Escríbenos por WhatsApp." : " Inténtalo de nuevo más tarde."), "err");
         }).then(function () { btn.disabled = false; });
       });
     });
