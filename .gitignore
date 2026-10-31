@@ -5,3 +5,4 @@ pcb_privado/
 admin/_codigo.php
 *.zip
 .DS_Store
+__pycache__/
