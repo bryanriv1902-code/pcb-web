@@ -1,0 +1,5 @@
+Pon aquí los videos de tus proyectos (MP4, H.264, horizontal 16:10, por ejemplo 1440x900) y regístralos en lib/manifest.js.
+Recomendado para cada proyecto:
+  proyecto-1-vista.mp4  → 6-10 segundos, sin sonido, máx. 3 MB (se repite en la tarjeta)
+  proyecto-1.mp4        → video completo (se abre al hacer clic)
+  proyecto-1.webp       → imagen de portada (primer fotograma)

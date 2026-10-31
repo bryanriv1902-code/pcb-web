@@ -1,0 +1,7 @@
+# Nunca subir datos privados, códigos ni archivos de trabajo
+_privado/*
+!_privado/.htaccess
+pcb_privado/
+admin/_codigo.php
+*.zip
+.DS_Store
