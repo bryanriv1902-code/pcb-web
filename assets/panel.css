@@ -81,3 +81,18 @@ label.row input { width: auto; min-height: 0; }
 .incl li { position: relative; padding-left: 1.2rem; font-size: .92rem; margin-bottom: .3rem; }
 .incl li::before { content: "✓"; position: absolute; left: 0; color: var(--candy); font-weight: 700; }
 .incl .no li::before { content: "–"; color: var(--muted); }
+
+/* Recibos */
+.rc-load { margin-bottom: 1.2rem; padding-bottom: 1.2rem; border-bottom: 1px solid var(--gray-2); }
+.rc-form fieldset { border: 1px solid var(--gray-2); border-radius: 12px; padding: 1rem 1.1rem 1.1rem; display: grid; gap: .9rem; }
+.rc-form legend { font: 700 .8rem "Outfit", sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--candy); padding: 0 .4rem; }
+.rc-2 { display: grid; gap: .9rem; }
+@media (min-width: 640px) { .rc-2 { grid-template-columns: 1fr 1fr; } }
+.rc-hint { font-weight: 400; }
+.rc-total { font-size: 1.05rem; background: var(--gray); border-radius: 10px; padding: .7rem 1rem; }
+.rc-total b { font: 800 1.25rem "Outfit", sans-serif; }
+.rc-list-title { margin: 1.6rem 0 .8rem; font-size: 1.3rem; }
+.rc-actions form { display: contents; }
+.rc-item.is-void { opacity: .65; }
+.rc-item.is-new { border-color: var(--candy); box-shadow: 0 0 0 3px rgba(232,18,43,.12); }
+.rc-void { max-width: 420px; margin-top: .6rem; }

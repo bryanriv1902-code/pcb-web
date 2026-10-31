@@ -2,5 +2,6 @@ User-agent: *
 Disallow: /admin/
 Disallow: /pago/
 Disallow: /api/
+Disallow: /recibo/
 
 Sitemap: https://pcbsolucionesdigitales.com/sitemap.xml

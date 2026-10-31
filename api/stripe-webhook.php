@@ -46,6 +46,11 @@ if ($pagado && $importeOk && empty($p['pago']['confirmado'])) {
     'fecha'      => date('c'),
     'sesion'     => (string) ($s['id'] ?? ''),
     'importe'    => number_format(PCB_PRECIO_CENTAVOS / 100, 2) . ' ' . strtoupper(PCB_MONEDA),
+    'subtotal'   => round(((int) ($s['amount_subtotal'] ?? PCB_PRECIO_CENTAVOS)) / 100, 2),
+    'impuesto'   => round(((int) ($s['total_details']['amount_tax'] ?? 0)) / 100, 2),
+    'total'      => round(((int) ($s['amount_total'] ?? PCB_PRECIO_CENTAVOS)) / 100, 2),
+    'metodo'     => 'tarjeta',
+    'referencia' => (string) ($s['payment_intent'] ?? ($s['id'] ?? '')),
     'modo'       => !empty($ev['livemode']) ? 'real' : 'prueba',
     'email'      => (string) ($s['customer_details']['email'] ?? ''),
   ];

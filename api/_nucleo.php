@@ -191,3 +191,78 @@ function pcb_stripe_post(string $ruta, array $campos): array {
   $j = json_decode((string) $raw, true);
   return ['code' => $code, 'body' => is_array($j) ? $j : []];
 }
+
+/* ---------- Recibos (talonario con número consecutivo) ---------- */
+const PCB_CANALES = ['web' => 'Página web', 'whatsapp' => 'WhatsApp', 'telefono' => 'Llamada telefónica', 'facebook' => 'Facebook', 'persona' => 'En persona'];
+const PCB_METODOS = ['tarjeta' => 'Tarjeta (Stripe)', 'zelle' => 'Zelle', 'efectivo' => 'Efectivo', 'transferencia' => 'Transferencia bancaria', 'otro' => 'Otro'];
+
+function pcb_dir_recibos(): string {
+  $d = pcb_privado() . '/recibos';
+  if (!is_dir($d)) @mkdir($d, 0750, true);
+  return $d;
+}
+/** Siguiente número del talonario: PCB-R-AAAA-0001 (se reinicia cada año). Nunca se reutiliza un número. */
+function pcb_nuevo_numero_recibo(): string {
+  $f = pcb_dir_recibos() . '/contador.json';
+  $fh = fopen($f, 'c+');
+  if (!$fh) throw new RuntimeException('contador');
+  flock($fh, LOCK_EX);
+  $c = json_decode((string) stream_get_contents($fh), true);
+  if (!is_array($c)) $c = [];
+  $anio = date('Y');
+  $n = (int) ($c[$anio] ?? 0) + 1;
+  $c[$anio] = $n;
+  ftruncate($fh, 0); rewind($fh);
+  fwrite($fh, json_encode($c));
+  fflush($fh); flock($fh, LOCK_UN); fclose($fh);
+  return sprintf('PCB-R-%s-%04d', $anio, $n);
+}
+function pcb_ruta_recibo(string $num): ?string {
+  if (!preg_match('/^PCB-R-\d{4}-\d{4,}$/', $num)) return null;
+  return pcb_dir_recibos() . '/' . $num . '.json';
+}
+function pcb_guardar_recibo(array $r): bool {
+  $f = pcb_ruta_recibo($r['numero'] ?? '');
+  if (!$f) return false;
+  return @file_put_contents($f, json_encode($r, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+}
+function pcb_leer_recibo(string $num): ?array {
+  $f = pcb_ruta_recibo($num);
+  if (!$f || !is_file($f)) return null;
+  $r = json_decode((string) file_get_contents($f), true);
+  return is_array($r) ? $r : null;
+}
+function pcb_todos_recibos(): array {
+  $out = [];
+  foreach (glob(pcb_dir_recibos() . '/PCB-R-*.json') ?: [] as $f) {
+    $r = json_decode((string) file_get_contents($f), true);
+    if (is_array($r)) $out[] = $r;
+  }
+  usort($out, function ($a, $b) { return strcmp($b['numero'] ?? '', $a['numero'] ?? ''); });
+  return $out;
+}
+function pcb_recibo_por_token(string $token): ?array {
+  if (!preg_match('/^[a-f0-9]{32}$/', $token)) return null;
+  foreach (pcb_todos_recibos() as $r) { if (hash_equals($r['token'] ?? '', $token)) return $r; }
+  return null;
+}
+function pcb_dinero($n): string { return '$' . number_format((float) $n, 2, '.', ','); }
+function pcb_fecha_us(string $iso): string { return $iso !== '' && strtotime($iso) ? date('m/d/Y', strtotime($iso)) : '—'; }
+
+/** Envía al cliente el enlace de su recibo. */
+function pcb_correo_recibo(array $r): bool {
+  $to = (string) ($r['cliente']['email'] ?? '');
+  if (!filter_var($to, FILTER_VALIDATE_EMAIL) || !function_exists('mail')) return false;
+  $host = preg_replace('/:\d+$/', '', $_SERVER['HTTP_HOST'] ?? 'localhost');
+  $enlace = pcb_url_base() . '/recibo/?r=' . $r['token'];
+  $cuerpo = "Hola {$r['cliente']['nombre']}:\n\n"
+    . "Gracias por confiar en PCB Soluciones Digitales. Aquí tienes el recibo de tu compra.\n\n"
+    . "Recibo: {$r['numero']}\nPedido: {$r['pedido_id']}\nTotal pagado: " . pcb_dinero($r['total']) . "\n\n"
+    . "Puedes verlo, descargarlo en PDF o imprimirlo aquí:\n$enlace\n\n"
+    . "Guarda este recibo como comprobante de tu pago.\n\n"
+    . "PCB Soluciones Digitales\nWhatsApp: +1 (401) 616-7029\nhttps://pcbsolucionesdigitales.com\n";
+  $headers = 'From: PCB Soluciones Digitales <no-reply@' . $host . ">\r\nContent-Type: text/plain; charset=utf-8";
+  $aviso = trim((string) (pcb_ajustes()['email_aviso'] ?? ''));
+  if ($aviso !== '' && filter_var($aviso, FILTER_VALIDATE_EMAIL)) $headers .= "\r\nReply-To: " . $aviso;
+  return @mail($to, '=?UTF-8?B?' . base64_encode('Tu recibo ' . $r['numero'] . ' — PCB Soluciones Digitales') . '?=', $cuerpo, $headers);
+}
