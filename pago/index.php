@@ -110,6 +110,7 @@ if ($p && !empty($p['prueba_inicio'])) {
             <li>Diseño de tu página profesional</li>
             <li>Adaptación a celulares y computadoras</li>
             <li>Formulario de contacto y botón de WhatsApp</li>
+            <li>Tu dominio propio (tunegocio.com) durante el primer año</li>
             <li>Publicación de la página</li>
             <li>Entrega definitiva con acceso y archivos tras el pago</li>
           </ul>
@@ -117,7 +118,7 @@ if ($p && !empty($p['prueba_inicio'])) {
         <div>
           <h2>No incluido</h2>
           <ul class="no">
-            <li>Dominio propio (tunegocio.com): solo unos $20 al año, se paga aparte al proveedor de dominios</li>
+            <li>Renovación del dominio desde el segundo año: unos $20 al año</li>
             <li>Cambios después de la entrega: se cotizan aparte</li>
           </ul>
         </div>
