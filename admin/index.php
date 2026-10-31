@@ -225,7 +225,7 @@ $modo = pcb_stripe_modo();
     $enlacePago = $base . '/pago/?p=' . $p['token'];
     $wa = wa_cliente($p['telefono'] ?? '');
     $msg = $p['estado'] === 'pendiente_pago'
-      ? "Hola {$p['nombre']}, aquí tienes tu enlace de pago seguro para quedarte con tu página web ($259.99, pago único): $enlacePago"
+      ? "Hola {$p['nombre']}, aquí tienes tu enlace de pago seguro para quedarte con tu página web ($249.99, pago único): $enlacePago"
       : "Hola {$p['nombre']}, aquí puedes seguir tu pedido de página web: $enlacePago";
   ?>
     <article class="box order">

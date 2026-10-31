@@ -530,7 +530,7 @@
         played = true;
         whole.textContent = "0"; cents.textContent = "00";
         stage.classList.add("is-lit");
-        countTo(whole, 259, 0, 1300, function () {
+        countTo(whole, 249, 0, 1300, function () {
           if (ctx) spawn(46, true);
         });
         setTimeout(function () {

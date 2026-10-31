@@ -52,7 +52,7 @@ if ($pagado && $importeOk && empty($p['pago']['confirmado'])) {
   pcb_historial($p, 'Pago confirmado por Stripe (' . $p['pago']['modo'] . ')');
   pcb_guardar_pedido($p);
   pcb_aviso('Pago confirmado — ' . $p['negocio'],
-    "El pedido {$p['id']} ({$p['negocio']}) ha pagado \$259.99.\nModo: {$p['pago']['modo']}\n\nHaz la entrega definitiva y márcalo como Entregado en el panel.\n");
+    "El pedido {$p['id']} ({$p['negocio']}) ha pagado \$249.99.\nModo: {$p['pago']['modo']}\n\nHaz la entrega definitiva y márcalo como Entregado en el panel.\n");
 } elseif ($pagado && !$importeOk) {
   pcb_historial($p, 'Atención: llegó un pago con un importe distinto al esperado. Revísalo en Stripe.');
   pcb_guardar_pedido($p);

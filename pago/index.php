@@ -100,7 +100,7 @@ if ($p && !empty($p['prueba_inicio'])) {
       <?php if ($error): ?><p class="alert"><?= pcb_h($error) ?></p><?php endif; ?>
       <?php if (!empty($_GET['cancelado']) && !$pagado): ?><p class="alert">No se completó el pago. Puedes intentarlo de nuevo cuando quieras.</p><?php endif; ?>
 
-      <div class="price"><span>$259.99</span> <em>Pago único</em></div>
+      <div class="price"><span>$249.99</span> <em>Pago único</em></div>
       <p class="muted small" style="margin:-.6rem 0 1rem">Más impuesto de venta donde aplique. Si el impuesto aplica en tu estado, se suma al pagar y lo verás antes de confirmar.</p>
 
       <div class="incl">
@@ -132,7 +132,7 @@ if ($p && !empty($p['prueba_inicio'])) {
         <form method="post">
           <input type="hidden" name="p" value="<?= pcb_h($p['token']) ?>">
           <input type="hidden" name="accion" value="pagar">
-          <button class="btn btn--big" type="submit" <?= $modo === 'demo' ? 'disabled aria-disabled="true"' : '' ?>>Pagar $259.99 de forma segura</button>
+          <button class="btn btn--big" type="submit" <?= $modo === 'demo' ? 'disabled aria-disabled="true"' : '' ?>>Pagar $249.99 de forma segura</button>
         </form>
         <p class="muted small">Te llevaremos a la página de pago de Stripe. Nunca pedimos ni guardamos los datos de tu tarjeta.</p>
       <?php else: ?>

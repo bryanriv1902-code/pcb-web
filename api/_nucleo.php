@@ -3,7 +3,7 @@
 // Este archivo no hace nada si se abre directamente.
 if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === basename(__FILE__)) { http_response_code(404); exit; }
 
-const PCB_PRECIO_CENTAVOS = 25999;          // $259.99
+const PCB_PRECIO_CENTAVOS = 24999;          // $249.99
 const PCB_MONEDA = 'usd';
 const PCB_PRODUCTO = 'Página web profesional — pago único';
 const PCB_DIAS_PRUEBA = 3;
@@ -158,7 +158,7 @@ function pcb_correo_cliente(array $p): void {
   $cuerpo = "Hola {$p['nombre']}:\n\n"
     . "Recibimos tu solicitud de página web para {$p['negocio']}.\n\n"
     . "Tu número de pedido es: {$p['id']}\n\n"
-    . "Nuestro objetivo es enviarte la primera versión en 48 horas. La pruebas gratis durante 3 días y solo pagas \$259.99 si decides quedarte con ella.\n\n"
+    . "Nuestro objetivo es enviarte la primera versión en 48 horas. La pruebas gratis durante 3 días y solo pagas \$249.99 si decides quedarte con ella.\n\n"
     . "Puedes seguir tu pedido y, cuando esté listo, pagarlo de forma segura aquí:\n$enlace\n\n"
     . "También puedes entrar en la sección «Pagar mi página» de nuestra web con tu número de pedido y este correo.\n\n"
     . "PCB Soluciones Digitales\n";
