@@ -111,6 +111,7 @@ if ($p && !empty($p['prueba_inicio'])) {
             <li>Adaptación a celulares y computadoras</li>
             <li>Formulario de contacto y botón de WhatsApp</li>
             <li>Tu dominio propio (tunegocio.com) durante el primer año</li>
+            <li>Inteligencia artificial para atender a tus clientes</li>
             <li>Publicación de la página</li>
             <li>Entrega definitiva con acceso y archivos tras el pago</li>
           </ul>

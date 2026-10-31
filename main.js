@@ -243,6 +243,41 @@
   }
 
   /* ---------- WhatsApp y correo (solo si están configurados) ---------- */
+  /* ---------- Sección de IA: conversación animada ---------- */
+  function initAI() {
+    var card = $("[data-ai]");
+    if (!card) return;
+    if (reduced || !("IntersectionObserver" in window)) return;
+    var chat = $("[data-ai-chat]", card);
+    var msgs = $$(".msg", chat), typing = $(".chat__typing", chat), toast = $(".chat__toast", card);
+    card.classList.add("ai-anim");
+    var timers = [], running = false;
+    function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+    function reset() { timers.forEach(clearTimeout); timers = []; msgs.concat([typing, toast]).forEach(function (el) { el.classList.remove("is-on"); }); }
+    function play() {
+      reset(); running = true;
+      var t = 300;
+      msgs.forEach(function (m) {
+        if (m.classList.contains("msg--bot")) {
+          later(function () { chat.insertBefore(typing, m); typing.classList.add("is-on"); }, t);
+          t += 1100;
+          later(function () { typing.classList.remove("is-on"); m.classList.add("is-on"); }, t);
+        } else {
+          later(function () { m.classList.add("is-on"); }, t);
+        }
+        t += 900;
+      });
+      later(function () { toast.classList.add("is-on"); }, t + 200);
+      later(function () { if (running) play(); }, t + 4200);
+    }
+    new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (e.isIntersecting && !running) play();
+        else if (!e.isIntersecting && running) { running = false; reset(); }
+      });
+    }, { threshold: 0.35 }).observe(card);
+  }
+
   function initContact() {
     var num = String(data.whatsapp || "").replace(/\D/g, "");
     if (num.length >= 10) {
@@ -415,7 +450,7 @@
     var groups = [
       [".eyebrow", "fx-up"],
       [".order h2, .how h2, .faq h2, .contact h2", "fx-title"],
-      [".offer__card, .pay__card", "fx-scale"],
+      [".ai__card, .offer__card, .pay__card", "fx-scale"],
       [".lead, .timeline li, .order .form, .contact .form, .contact__actions", "fx-up"],
       [".how__step", "fx-up", true],
       [".marquee", "fx-up"],
@@ -720,6 +755,7 @@
     safe(initPlayer, "initPlayer");
     safe(initDots, "initDots");
     safe(initContact, "initContact");
+    safe(initAI, "initAI");
     safe(initNav, "initNav");
     safe(initHeroIntro, "initHeroIntro");
     safe(initReveals, "initReveals");
