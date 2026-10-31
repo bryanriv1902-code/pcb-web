@@ -83,6 +83,9 @@
 # ----- HTTPS redirect (uncomment if your domain has SSL) -----
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # www.pcbsolucionesdigitales.com → pcbsolucionesdigitales.com
+  RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+  RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
   RewriteCond %{HTTPS} !=on
   RewriteCond %{HTTP:X-Forwarded-Proto} !=https
   RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
