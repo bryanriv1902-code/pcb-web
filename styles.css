@@ -776,3 +776,16 @@ html.intro-in .reel--marquee .reel__item { transform: translate3d(var(--mq, 0px)
   .chat { transform: none; }
 }
 .ai__note b { color: var(--fg); }
+
+/* ============ 14. PRECIO: la etiqueta "Pago único" siempre al lado ============ */
+/* El número reserva desde el inicio el ancho del precio final, así la cuenta (0 → 249.99) no mueve la etiqueta */
+.offer__price { flex-wrap: nowrap; }
+.offer__amount { white-space: nowrap; flex: none; }
+.offer__amount [data-price-whole] { display: inline-block; min-width: calc(3 * (1ch - 0.055em)); text-align: right; }
+.offer__amount [data-price-cents] { display: inline-block; min-width: calc(2 * (1ch - 0.02em)); }
+.offer__tag { flex: none; white-space: nowrap; }
+@media (max-width: 520px) {
+  .offer__price { gap: .5rem .7rem; }
+  .offer__amount { font-size: clamp(3.1rem, 15.5vw, 4.4rem); }
+  .offer__tag { font-size: .68rem; letter-spacing: .12em; padding: .42rem .62rem; }
+}
