@@ -60,6 +60,8 @@
   # Minimal security headers
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  # El navegador recordará usar siempre la conexión segura (https)
+  Header always set Strict-Transport-Security "max-age=15552000" env=HTTPS
 </IfModule>
 
 # ----- Correct MIME types (some shared hosts default wrong) -----
