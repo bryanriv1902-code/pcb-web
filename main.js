@@ -24,11 +24,22 @@
     $$(".vcard[data-slot]").forEach(function (card) {
       var i = +card.getAttribute("data-slot");
       var v = vids[i];
-      if (!v || !(v.vista || v.completo)) return; // sigue "Próximamente"
+      if (!v || !(v.vista || v.completo || v.imagen)) return; // sigue "Próximamente"
       var num = ("0" + (i + 1)).slice(-2);
       var titulo = v.titulo || ("Proyecto " + num);
       var media = $(".vcard__media", card);
       var html = "";
+      if (!(v.vista || v.completo)) {
+        // proyecto con captura: la imagen recorre la página lentamente
+        media.innerHTML = '<img class="vcard__shot" src="' + esc(v.portada || v.imagen) + '" alt="' + esc(titulo) + '" loading="lazy" decoding="async">' +
+          '<span class="vcard__play vcard__play--zoom" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M10 4H4v6M14 20h6v-6M4 4l6 6M20 20l-6-6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+        $(".vcard__title", card).innerHTML = esc(titulo) + (v.sector ? '<span class="vcard__sector">' + esc(v.sector) + "</span>" : "");
+        card.disabled = false;
+        card.setAttribute("aria-label", "Ver imagen: " + titulo);
+        card.setAttribute("data-image", v.imagen || v.portada);
+        card.setAttribute("data-title", titulo);
+        return;
+      }
       if (v.portada) html += '<img src="' + esc(v.portada) + '" alt="" loading="lazy" decoding="async">';
       // El video corto se carga solo cuando la tarjeta está a la vista
       html += '<video muted loop playsinline preload="none" data-src="' + esc(v.vista || v.completo) + '"' +
@@ -138,19 +149,28 @@
   /* ---------- Reproductor del video completo ---------- */
   function initPlayer() {
     var dlg = $("[data-player]"), vid = $("[data-player-video]"), title = $("[data-player-title]");
+    var pimg = $("[data-player-img]");
     if (!dlg || !vid) return;
     var lastCard = null;
     function close() {
       try { vid.pause(); } catch (_) {}
       vid.removeAttribute("src"); vid.load();
+      if (pimg) { pimg.hidden = true; pimg.removeAttribute("src"); }
+      vid.hidden = false;
       if (dlg.open && dlg.close) dlg.close(); else dlg.removeAttribute("open");
       if (lastCard) lastCard.focus();
     }
     $$(".vcard").forEach(function (card) {
       card.addEventListener("click", function () {
-        var src = card.getAttribute("data-full");
-        if (!src || card.disabled) return;
+        var src = card.getAttribute("data-full"), img = card.getAttribute("data-image");
+        if (card.disabled || !(src || img)) return;
         lastCard = card;
+        if (img && pimg) {
+          vid.hidden = true; pimg.src = img; pimg.alt = card.getAttribute("data-title") || ""; pimg.hidden = false;
+          title.textContent = card.getAttribute("data-title") || "";
+          if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
+          return;
+        }
         vid.src = src;
         title.textContent = card.getAttribute("data-title") || "";
         if (dlg.showModal) dlg.showModal(); else dlg.setAttribute("open", "");
