@@ -118,7 +118,7 @@ if ($p && !empty($p['prueba_inicio'])) {
         <div>
           <h2>No incluido</h2>
           <ul class="no">
-            <li>Renovación del dominio desde el segundo año: unos $20 al año</li>
+            <li>Renovación del dominio desde el segundo año: entre $5 y $20 al año</li>
             <li>Cambios después de la entrega: se cotizan aparte</li>
           </ul>
         </div>
