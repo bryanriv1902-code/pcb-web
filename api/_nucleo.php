@@ -140,6 +140,69 @@ function pcb_url_base(): string {
   return ($https ? 'https' : 'http') . '://' . $host . $raizWeb;
 }
 
+/* ---------- Filtro anti-spam ----------
+   Suma puntos por señales típicas de robots y estafas de "SEO". Con 3 o más es spam.
+   El spam no entra a Pedidos ni manda aviso: queda en pcb_privado/spam.jsonl y se ve en el panel. */
+const PCB_SPAM_UMBRAL = 3;
+
+function pcb_puntaje_spam(array $textos, string $email, array $cortos = []): array {
+  $pts = 0; $motivos = [];
+  $todo = mb_strtolower(implode("\n", array_merge($textos, $cortos)), 'UTF-8');
+
+  // 1) Correo con nuestro propio dominio dentro (ej. domains@search-pcbsolucionesdigitales.com)
+  $dom = strtolower((string) substr((string) strrchr($email, '@'), 1));
+  if ($dom !== '' && strpos(str_replace(['-', '.'], '', $dom), 'pcbsolucionesdigitales') !== false) {
+    $pts += 3; $motivos[] = 'correo que imita nuestro dominio';
+  }
+
+  // 2) Frases de estafas de posicionamiento, cripto, préstamos, etc.
+  $fuertes = ['search index', 'search engine', 'search results', 'submit your', 'register your website', 'list your website',
+    'add your website', 'backlink', 'guest post', 'rank your', 'first page of google', 'top of google', 'increase your traffic',
+    'web traffic', 'bitcoin', 'crypto', 'casino', 'viagra', 'cialis', 'loan offer', 'unsubscribe', 'opt out', 'opt-out'];
+  $suaves = ['dear sir', 'sir/madam', 'dear madam', 'seo services', 'seo service', 'kindly'];
+  $n = 0;
+  foreach ($fuertes as $f) if (strpos($todo, $f) !== false) $n += 2;
+  foreach ($suaves as $f) if (strpos($todo, $f) !== false) $n += 1;
+  if ($n > 0) { $pts += min(4, $n); $motivos[] = 'frases típicas de spam'; }
+
+  // 3) Enlaces. Uno en el mensaje es normal (su web actual); varios o en el nombre, no.
+  $reUrl = '~(https?://|www\.)\S+|\b[a-z0-9-]+\.(com|net|org|info|biz|live|pro|xyz|online|site|top|shop|store|click|link|io|co|ru|cn)\b~i';
+  $enl = preg_match_all($reUrl, implode("\n", $textos));
+  $enlCortos = preg_match_all($reUrl, implode("\n", $cortos));
+  if ($enlCortos > 0) { $pts += 2; $motivos[] = 'enlace en el nombre o negocio'; }
+  if ($enl >= 2) { $pts += 2; $motivos[] = $enl . ' enlaces en el mensaje'; }
+  elseif ($enl === 1) { $pts += 1; }
+
+  // 4) Alfabetos que no usan nuestros clientes (cirílico, chino, japonés, coreano)
+  if (preg_match('/[\x{0400}-\x{04FF}\x{3040}-\x{30FF}\x{4E00}-\x{9FFF}\x{AC00}-\x{D7AF}]/u', $todo)) {
+    $pts += 2; $motivos[] = 'alfabeto extranjero';
+  }
+
+  return ['spam' => $pts >= PCB_SPAM_UMBRAL, 'puntos' => $pts, 'motivos' => $motivos];
+}
+
+/** Guarda lo bloqueado para poder revisarlo (por si algún cliente real cayó por error). */
+function pcb_guardar_spam(array $datos, string $motivo): void {
+  $f = pcb_privado() . '/spam.jsonl';
+  if (is_file($f) && filesize($f) > 600000) { // se queda con las últimas ~300 entradas
+    $lineas = array_slice(file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [], -300);
+    @file_put_contents($f, implode("\n", $lineas) . "\n", LOCK_EX);
+  }
+  $datos = array_map(function ($v) { return is_string($v) ? mb_substr($v, 0, 600, 'UTF-8') : $v; }, $datos);
+  $fila = ['fecha' => date('c'), 'motivo' => $motivo, 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''] + $datos;
+  @file_put_contents($f, json_encode($fila, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
+}
+
+/** Total bloqueado y las últimas entradas (más nuevas primero). */
+function pcb_spam_recientes(int $max = 20): array {
+  $f = pcb_privado() . '/spam.jsonl';
+  if (!is_file($f)) return ['total' => 0, 'filas' => []];
+  $lineas = file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+  $filas = [];
+  foreach (array_reverse(array_slice($lineas, -$max)) as $l) { $x = json_decode($l, true); if (is_array($x)) $filas[] = $x; }
+  return ['total' => count($lineas), 'filas' => $filas];
+}
+
 /* ---------- Aviso por correo al dueño (si está configurado) ---------- */
 function pcb_aviso(string $asunto, string $cuerpo): void {
   $to = trim((string) (pcb_ajustes()['email_aviso'] ?? ''));

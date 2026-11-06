@@ -11,14 +11,34 @@ if (strlen((string) $raw) > 20000) pcb_json(['ok' => false, 'reason' => 'size'],
 $in = json_decode((string) $raw, true);
 if (!is_array($in)) $in = $_POST;
 
-// Anti-spam: campo trampa y tiempo mínimo en la página
-if (pcb_texto($in['sitio'] ?? '', 200) !== '') pcb_json(['ok' => true]); // se descarta en silencio
+$tipo = ($in['tipo'] ?? '') === 'contacto' ? 'contacto' : 'pedido';
+$campo = function (string $k, int $max) use ($in) { return pcb_texto($in[$k] ?? '', $max); };
+$resumen = $tipo === 'contacto'
+  ? ['tipo' => 'contacto', 'nombre' => $campo('nombre', 80), 'contacto' => $campo('contacto', 160), 'mensaje' => $campo('mensaje', 1500)]
+  : ['tipo' => 'pedido', 'nombre' => $campo('nombre', 80), 'negocio' => $campo('negocio', 120), 'telefono' => $campo('telefono', 24),
+     'email' => $campo('email', 160), 'servicios' => $campo('servicios', 1500), 'preferencias' => $campo('preferencias', 1500)];
+
+// Anti-spam 1: campo trampa invisible (solo lo llenan los robots) → se descarta en silencio
+if ($campo('sitio', 200) !== '') { pcb_guardar_spam($resumen, 'campo trampa'); pcb_json(['ok' => true]); }
+
+// Anti-spam 2: el navegador marca la hora en que se abrió la página. Sin esa marca
+// (robots que envían directo sin abrir la web) se descarta; si es muy rápido, se pide reintentar.
 $t = (int) ($in['t'] ?? 0);
-if ($t > 0 && (time() * 1000 - $t) < 3000) pcb_json(['ok' => false, 'reason' => 'fast']);
+$ahora = time() * 1000;
+if ($t <= 0 || $t > $ahora + 86400000) { pcb_guardar_spam($resumen, 'envío sin abrir la página'); pcb_json(['ok' => true]); }
+if (($ahora - $t) < 3000) pcb_json(['ok' => false, 'reason' => 'fast']);
+
 if (empty($in['acepto'])) pcb_json(['ok' => false, 'reason' => 'consent']);
 if (!pcb_limite('form', 4, 30)) pcb_json(['ok' => false, 'reason' => 'rate'], 429);
 
-$tipo = ($in['tipo'] ?? '') === 'contacto' ? 'contacto' : 'pedido';
+// Anti-spam 3: contenido (correo falso con nuestro dominio, frases de estafas de SEO, muchos enlaces…)
+$chequeo = $tipo === 'contacto'
+  ? pcb_puntaje_spam([$resumen['mensaje'], $resumen['contacto']], $resumen['contacto'], [$resumen['nombre']])
+  : pcb_puntaje_spam([$resumen['servicios'], $resumen['preferencias']], $resumen['email'], [$resumen['nombre'], $resumen['negocio']]);
+if ($chequeo['spam']) {
+  pcb_guardar_spam($resumen, implode(', ', $chequeo['motivos']) . ' (' . $chequeo['puntos'] . ' puntos)');
+  pcb_json(['ok' => true]); // el robot cree que funcionó y no insiste
+}
 
 if ($tipo === 'contacto') {
   $m = [
@@ -57,6 +77,7 @@ $p = [
 if ($p['negocio'] === '' || $p['sector'] === '' || $p['servicios'] === '' || $p['nombre'] === '' || $p['telefono'] === '') {
   pcb_json(['ok' => false, 'reason' => 'fields']);
 }
+if (strlen(preg_replace('/\D/', '', $p['telefono'])) < 10) pcb_json(['ok' => false, 'reason' => 'phone']);
 if (!filter_var($p['email'], FILTER_VALIDATE_EMAIL)) pcb_json(['ok' => false, 'reason' => 'email']);
 pcb_historial($p, 'Solicitud recibida desde la web');
 

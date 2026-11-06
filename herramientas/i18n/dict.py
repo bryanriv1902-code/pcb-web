@@ -218,4 +218,6 @@ D += [
 ("Enviando…", "Sending…", "Enviando…"),
 ("Revisa tus datos y vuelve a enviar en unos segundos.", "Check your details and send again in a few seconds.", "Confira os seus dados e envie novamente em alguns segundos."),
 ("Idioma", "Language", "Idioma"),
+("Escribe tu teléfono completo con código de área (10 dígitos).", "Enter your full phone number with area code (10 digits).", "Digite seu telefone completo com código de área (10 dígitos)."),
+("¡Recibimos tu solicitud! Te contactaremos pronto.", "We got your request! We'll contact you soon.", "Recebemos o seu pedido! Entraremos em contato em breve."),
 ]

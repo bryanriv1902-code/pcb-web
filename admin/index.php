@@ -225,7 +225,7 @@ $modo = pcb_stripe_modo();
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap">
-  <link rel="stylesheet" href="../assets/panel.css?v=20261031b">
+  <link rel="stylesheet" href="../assets/panel.css?v=20261104a">
 </head>
 <body class="panel">
 <header class="bar">
@@ -445,6 +445,21 @@ $modo = pcb_stripe_modo();
   <ul class="counts">
     <?php foreach (PCB_ESTADOS as $k => $lbl): ?><li class="state state--<?= $k ?>"><?= pcb_h($lbl) ?> <b><?= (int) ($cuenta[$k] ?? 0) ?></b></li><?php endforeach; ?>
   </ul>
+  <?php $spam = pcb_spam_recientes(20); if ($spam['total'] > 0): ?>
+  <details class="box spam">
+    <summary><b>Spam bloqueado: <?= (int) $spam['total'] ?></b> <span class="muted small">— no entra a Pedidos ni te avisa. Revísalo de vez en cuando por si un cliente real cayó aquí por error.</span></summary>
+    <ul>
+      <?php foreach ($spam['filas'] as $s): ?>
+      <li>
+        <p class="meta"><?= pcb_h(date('m/d/Y H:i', strtotime($s['fecha'] ?? 'now'))) ?> · <?= pcb_h(($s['tipo'] ?? '') === 'contacto' ? 'Mensaje' : 'Solicitud') ?> · <span class="muted"><?= pcb_h($s['motivo'] ?? '') ?></span></p>
+        <p><b><?= pcb_h(($s['nombre'] ?? '') ?: '—') ?></b><?= !empty($s['negocio']) ? ' · ' . pcb_h($s['negocio']) : '' ?>
+          <?= !empty($s['telefono']) ? ' · ' . pcb_h($s['telefono']) : '' ?><?= !empty($s['email']) ? ' · ' . pcb_h($s['email']) : '' ?><?= !empty($s['contacto']) ? ' · ' . pcb_h($s['contacto']) : '' ?></p>
+        <?php $txt = trim(($s['servicios'] ?? '') . ' ' . ($s['preferencias'] ?? '') . ' ' . ($s['mensaje'] ?? '')); if ($txt !== ''): ?><p class="muted small"><?= pcb_h(mb_strimwidth($txt, 0, 220, '…', 'UTF-8')) ?></p><?php endif; ?>
+      </li>
+      <?php endforeach; ?>
+    </ul>
+  </details>
+  <?php endif; ?>
   <?php if (!$pedidos): ?><p class="muted">Todavía no hay solicitudes. Aparecerán aquí en cuanto alguien envíe el formulario de la web.</p><?php endif; ?>
 
   <?php foreach ($pedidos as $p):

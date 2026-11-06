@@ -96,3 +96,10 @@ label.row input { width: auto; min-height: 0; }
 .rc-item.is-void { opacity: .65; }
 .rc-item.is-new { border-color: var(--candy); box-shadow: 0 0 0 3px rgba(232,18,43,.12); }
 .rc-void { max-width: 420px; margin-top: .6rem; }
+
+/* Spam bloqueado */
+.spam { margin: 0 0 18px; }
+.spam summary { cursor: pointer; line-height: 1.5; }
+.spam ul { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.spam li { padding: 10px 0; border-top: 1px solid var(--gray); overflow-wrap: anywhere; }
+.spam li p { margin: 2px 0; }

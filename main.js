@@ -714,11 +714,12 @@
         ev.preventDefault();
         var bad = null;
         $$("[required]", form).forEach(function (f) {
-          var ok = f.type === "checkbox" ? f.checked : String(f.value).trim() !== "" && (f.type !== "email" || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.value.trim()));
+          var ok = f.type === "checkbox" ? f.checked : String(f.value).trim() !== "" && (f.type !== "email" || /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.value.trim()))
+            && (f.type !== "tel" || String(f.value).replace(/\D/g, "").length >= 10);
           (f.type === "checkbox" ? f.parentNode : f).classList.toggle("is-bad", !ok);
           if (!ok && !bad) bad = f;
         });
-        if (bad) { setMsg(T("Revisa los campos marcados."), "err"); bad.focus(); return; }
+        if (bad) { setMsg(bad.type === "tel" && String(bad.value).trim() !== "" ? T("Escribe tu teléfono completo con código de área (10 dígitos).") : T("Revisa los campos marcados."), "err"); bad.focus(); return; }
 
         var payload = {};
         $$("input, select, textarea", form).forEach(function (f) {
@@ -735,12 +736,14 @@
           if (res && res.ok) {
             form.reset(); if (tIn) tIn.value = String(t0);
             setMsg(form.getAttribute("data-form") === "pedido"
-              ? T("¡Recibimos tu solicitud! Tu número de pedido es ") + (res.id || "") + T(". Guárdalo: con él podrás pagar tu página cuando te convenza. Te lo enviamos también por correo.")
+              ? (res.id ? T("¡Recibimos tu solicitud! Tu número de pedido es ") + res.id + T(". Guárdalo: con él podrás pagar tu página cuando te convenza. Te lo enviamos también por correo.")
+                : T("¡Recibimos tu solicitud! Te contactaremos pronto."))
               : T("¡Mensaje recibido! Te responderemos pronto."), "ok");
           } else {
             var r2 = res && res.reason;
             setMsg(r2 === "rate" ? T("Has enviado varias solicitudes seguidas. Inténtalo de nuevo en unos minutos.")
               : r2 === "fast" ? T("Revisa tus datos y vuelve a enviar en unos segundos.")
+              : r2 === "phone" ? T("Escribe tu teléfono completo con código de área (10 dígitos).")
               : T("No pudimos enviar tu solicitud. Revisa los datos e inténtalo de nuevo."), "err");
           }
         }).catch(function () {
